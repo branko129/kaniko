@@ -49,8 +49,6 @@ podTemplate(yaml: '''
                     sh "/kaniko/executor \
                       --dockerfile `pwd`/Dockerfile \
                       --context `pwd` \
-                      --insecure \
-                      --skip-tls-verify \
                       --destination=neos1-docker-dev.artifactory.nortal.com/faq-service:kaniko"
                     }
             }
