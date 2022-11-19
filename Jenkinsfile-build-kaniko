@@ -19,9 +19,6 @@ podTemplate(yaml: '''
         - '100m'
         resourceLimitMemory:
         - '200Mi'
-        args: ["--dockerfile=/`pwd`/Dockerfile",
-                "--context=dir://`pwd`",
-                "--destination=neos1-docker-dev.artifactory.nortal.com/faq-service:kaniko"]
         volumeMounts:
           - name: kaniko-secret
             mountPath: /kaniko/.docker
