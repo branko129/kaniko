@@ -15,8 +15,6 @@ podTemplate(yaml: '''
         - '2048Mi'
       - name: kaniko
         image: gcr.io/kaniko-project/executor:debug
-        command:
-        - sleep
         resourceLimitCpu:
         - '100m'
         resourceLimitMemory:
