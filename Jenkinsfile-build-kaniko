@@ -16,7 +16,7 @@ podTemplate(yaml: '''
       - name: kaniko
         image: gcr.io/kaniko-project/executor:debug
         command:
-        - cat
+        - sleep
         resourceLimitCpu:
         - '100m'
         resourceLimitMemory:
@@ -27,14 +27,14 @@ podTemplate(yaml: '''
         volumeMounts:
           - name: kaniko-secret
             mountPath: /kaniko/.docker
-        restartPolicy: Never
-        volumes:
-        - name: kaniko-secret
-          secret:
-            secretName: regcred
-            items:
-              - key: .dockerconfigjson
-                path: config.json
+      restartPolicy: Never
+      volumes:
+      - name: kaniko-secret
+        secret:
+          secretName: regcred
+          items:
+            - key: .dockerconfigjson
+              path: config.json
 ''')
   {
     node(POD_LABEL) {
