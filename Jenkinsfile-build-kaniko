@@ -1,41 +1,47 @@
-podTemplate(containers: [
-    containerTemplate(
-        name: 'gradle',
-        image: 'gradle:7.3.0-jdk17',
-        command: 'sleep',args: '99d',
-        resourceLimitCpu: '500m',
-        resourceLimitMemory: '2048Mi'
-    ),
-    containerTemplate(
-        name: 'kaniko',
-        image: 'gcr.io/kaniko-project/executor:debug',
-        command: 'cat',
-        ttyEnabled: true,
-        resourceLimitCpu: '100m',
-        resourceLimitMemory: '200Mi'
-    )
-  ],
-  volumes: [
-        secretVolume(mountPath: '/root/.docker/', secretName: 'regcred')
-  ],
-  envVars: [
-  secretEnvVar(key: 'uname', secretName: 'credrl', secretKey: 'username'),
-  secretEnvVar(key: 'pwd', secretName: 'credrl', secretKey: 'password'),
-  secretEnvVar(key: 'artifactoryUser', secretName: 'credrl', secretKey: 'username'),
-  secretEnvVar(key: 'artifactoryPassword', secretName: 'credrl', secretKey: 'password')
-  ],
-  imagePullSecrets:
-  ['regcred']
-   )
+podTemplate(yaml: '''
+    apiVersion: v1
+    kind: Pod
+    spec:
+      containers:
+      - name: gradle
+        image: gradle:7.3.0-jdk17
+        command:
+        - sleep
+        args:
+        - 99d
+        resourceLimitCpu:
+        - '500m'
+        resourceLimitMemory:
+        - '2048Mi'
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - cat
+        resourceLimitCpu:
+        - '100m'
+        resourceLimitMemory:
+        - '200Mi'
+        args: ["--dockerfile=/`pwd`/Dockerfile",
+                "--context=dir://`pwd`",
+                "--destination=neos1-docker-dev.artifactory.nortal.com/faq-service:kaniko"]
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker
+        restartPolicy: Never
+        volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+''')
   {
     node(POD_LABEL) {
         stage('Get a Java project from git') {
             sh"git config --global http.sslverify false"
             sh"export GIT_SSL_NO_VERIFY=true"
             git branch: 'master', credentialsId: 'faq-pat', url: 'https://gitlab.nortal.com/neos1/faq-service.git'
-            sh 'echo "" >> gradle.properties'
-            sh 'echo artifactoryUser=${artifactoryUser} >> gradle.properties'
-            sh 'echo artifactoryPassword=${artifactoryPassword} >> gradle.properties'
             container('gradle') {
                 stage('Build') {
                     sh 'echo hello'
